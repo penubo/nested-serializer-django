@@ -1,4 +1,5 @@
 from django.db import models
+from django.test.utils import require_jinja2
 
 
 class Annotation(models.Model):
@@ -13,8 +14,8 @@ class Obstacle(models.Model):
 
 class Point(models.Model):
     obstacle = models.ForeignKey(Obstacle,
-                                 related_name='points',
+                                 related_name='polygon',
                                  on_delete=models.CASCADE)
 
-    x = models.FloatField(default=0)
-    y = models.FloatField(default=0)
+    x = models.FloatField(null=False, blank=False)
+    y = models.FloatField(null=False, blank=False)

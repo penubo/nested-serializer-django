@@ -10,15 +10,11 @@ class PointSerializer(serializers.ModelSerializer):
 
 
 class ObstacleSerializer(serializers.ModelSerializer):
+    polygon = PointSerializer(many=True)
 
     class Meta:
         model = Obstacle
-        fields = ['points']
-
-    def to_representation(self, instance: Obstacle):
-        response = super().to_representation(instance)
-        response = {"polygon": PointSerializer(instance.points, many=True).data}
-        return response
+        fields = ['polygon']
 
 
 class AnnotationSerializer(serializers.ModelSerializer):
@@ -27,3 +23,15 @@ class AnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Annotation
         fields = ['obstacles']
+
+    def create(self, validated_data):
+        obstacles_data = validated_data.pop('obstacles')
+        annotation = Annotation.objects.create(**validated_data)
+        for obstacle_data in obstacles_data:
+            points_data = obstacle_data.pop('polygon')
+            obstacle = Obstacle.objects.create(annotation=annotation,
+                                               **obstacle_data)
+            for point_data in points_data:
+                Point.objects.create(obstacle=obstacle, **point_data)
+
+        return annotation
